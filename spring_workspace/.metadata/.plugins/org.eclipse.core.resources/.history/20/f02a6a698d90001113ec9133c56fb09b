@@ -1,6 +1,0 @@
-package org.zerock.sample;
-
-@Component
-public class Chef {
-
-}

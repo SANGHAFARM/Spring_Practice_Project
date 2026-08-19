@@ -1,7 +1,0 @@
-package org.zerock.sample;
-
-@Component
-@Data
-public class Restaurant {
-
-}
