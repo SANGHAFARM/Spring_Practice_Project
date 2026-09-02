@@ -191,7 +191,11 @@
 								function(e) {
 
 									e.preventDefault();
-									console.log('click');
+
+									actionForm.find("input[name='bno']")
+											.remove(); // bno 태그 제거
+									actionForm.attr("action", "/board/list"); // 목록 이동으로 주소 초기화
+
 									actionForm.find("input[name='pageNum']")
 											.val($(this).attr("href"));
 									actionForm.submit();
@@ -203,6 +207,11 @@
 										function(e) {
 
 											e.preventDefault();
+
+											actionForm
+													.find("input[name='bno']")
+													.remove(); // 기존에 쌓여있던 bno 제거!
+
 											actionForm
 													.append("<input type='hidden' name='bno' value='"
 															+ $(this).attr(
