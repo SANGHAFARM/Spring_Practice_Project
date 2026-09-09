@@ -5,6 +5,64 @@
 
 <%@include file="../includes/header.jsp"%>
 
+<div class='bigPictureWrapper'>
+	<div class='bigPicture'></div>
+</div>
+
+<style>
+.uploadResult {
+	width: 100%;
+	background-color: gray;
+}
+
+.uploadResult ul {
+	display: flex;
+	flex-flow: row;
+	justify-content: center;
+	align-items: center;
+}
+
+.uploadResult ul li {
+	list-style: none;
+	padding: 10px;
+	align-content: center;
+	text-align: center;
+}
+
+.uploadResult ul li img {
+	width: 100px;
+}
+
+.uploadResult ul li span {
+	color: white;
+}
+
+.bigPictureWrapper {
+	position: absolute;
+	display: none;
+	justify-content: center;
+	align-items: center;
+	top: 0%;
+	width: 100%;
+	height: 100%;
+	background-color: gray;
+	z-index: 100;
+	background: rgba(255, 255, 255, 0.5);
+}
+
+.bigPicture {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	align-items: center;
+}
+
+.bigPicture img {
+	width: 600px;
+}
+</style>
+
+<!-- 1. 게시글 본문 영역 -->
 <div class="row">
 	<div class="col-lg-12">
 		<h1 class='page-header'>Board Read</h1>
@@ -57,19 +115,39 @@
 				</form>
 
 			</div>
-			<!--  end panel-body -->
+			<!-- end panel-body -->
 
 		</div>
-		<!--  end panel-body -->
+		<!-- end panel-default -->
 	</div>
-	<!--  end panel -->
+	<!-- end col-lg-12 -->
 </div>
 <!-- /.row -->
 
-<!-- 댓글 목록 화면 영역 -->
+<!-- 2. 첨부파일 목록 영역 (본문 아래로 재배치) -->
+<div class="row">
+	<div class="col-lg-12">
+		<div class="panel panel-default">
+
+			<div class="panel-heading">Files</div>
+			<!-- /.panel-heading -->
+			<div class="panel-body">
+				<div class='uploadResult'>
+					<ul>
+					</ul>
+				</div>
+			</div>
+			<!-- end panel-body -->
+		</div>
+		<!-- end panel -->
+	</div>
+	<!-- end col-lg-12 -->
+</div>
+<!-- /.row -->
+
+<!-- 3. 댓글 목록 화면 영역 -->
 <div class='row'>
 	<div class="col-lg-12">
-		<!-- /.panel -->
 		<div class="panel panel-default">
 			<div class="panel-heading">
 				<i class="fa fa-comments fa-fw"></i> Reply
@@ -80,20 +158,19 @@
 			<div class="panel-body">
 				<ul class="chat">
 				</ul>
-				<!-- ./ end ul -->
 			</div>
 			<!-- /.panel .chat-panel -->
 
 			<div class="panel-footer"></div>
 		</div>
 	</div>
-	<!-- ./ end row -->
+	<!-- /.col-lg-12 -->
 </div>
-<!-- ./ end row -->
+<!-- /.row -->
 
 <%@include file="../includes/footer.jsp"%>
 
-<!-- Modal -->
+<!-- 댓글 Modal -->
 <div class="modal fade" id="myModal" tabindex="-1" role="dialog"
 	aria-labelledby="myModalLabel" aria-hidden="true">
 	<div class="modal-dialog">
@@ -125,11 +202,8 @@
 					data-dismiss="modal">Close</button>
 			</div>
 		</div>
-		<!-- /.modal-content -->
 	</div>
-	<!-- /.modal-dialog -->
 </div>
-<!-- /.modal -->
 
 <script type="text/javascript" src="/resources/js/reply.js"></script>
 
@@ -138,6 +212,100 @@
 			.ready(
 					function() {
 
+						// [첨부파일 목록 비동기 조회 및 화면 출력]
+						(function() {
+							var bno = '<c:out value="${board.bno}"/>';
+
+							$
+									.getJSON(
+											"/board/getAttachList",
+											{
+												bno : bno
+											},
+											function(arr) {
+												console.log(arr);
+
+												var str = "";
+
+												$(arr)
+														.each(
+																function(i,
+																		attach) {
+																	// image type
+																	if (attach.fileType) {
+																		var fileCallPath = encodeURIComponent(attach.uploadPath
+																				+ "/s_"
+																				+ attach.uuid
+																				+ "_"
+																				+ attach.fileName);
+
+																		str += "<li data-path='" + attach.uploadPath + "' data-uuid='" + attach.uuid + "' data-filename='" + attach.fileName + "' data-type='" + attach.fileType + "' ><div>";
+																		str += "<img src='/display?fileName="
+																				+ fileCallPath
+																				+ "'>";
+																		str += "</div></li>";
+																	} else {
+																		str += "<li data-path='" + attach.uploadPath + "' data-uuid='" + attach.uuid + "' data-filename='" + attach.fileName + "' data-type='" + attach.fileType + "' ><div>";
+																		str += "<span> "
+																				+ attach.fileName
+																				+ "</span><br/>";
+																		str += "<img src='/resources/img/attach.png'>";
+																		str += "</div></li>";
+																	}
+																});
+
+												$(".uploadResult ul").html(str);
+											}); // end getjson
+						})(); // end function
+
+						// 첨부파일 클릭 이벤트 (이미지 확대 또는 일반 파일 다운로드)
+						$(".uploadResult").on(
+								"click",
+								"li",
+								function(e) {
+									console.log("view image");
+
+									var liObj = $(this);
+									var path = encodeURIComponent(liObj
+											.data("path")
+											+ "/"
+											+ liObj.data("uuid")
+											+ "_"
+											+ liObj.data("filename"));
+
+									if (liObj.data("type")) {
+										showImage(path.replace(
+												new RegExp(/\\/g), "/"));
+									} else {
+										self.location = "/download?fileName="
+												+ path;
+									}
+								});
+
+						// 원본 이미지 닫기
+						$(".bigPictureWrapper").on("click", function(e) {
+							$(".bigPicture").animate({
+								width : '0%',
+								height : '0%'
+							}, 1000);
+							setTimeout(function() {
+								$('.bigPictureWrapper').hide();
+							}, 1000);
+						});
+
+						// 원본 이미지 표시 함수
+						function showImage(fileCallPath) {
+							$(".bigPictureWrapper").css("display", "flex")
+									.show();
+							$(".bigPicture").html(
+									"<img src='/display?fileName="
+											+ fileCallPath + "'>").animate({
+								width : '100%',
+								height : '100%'
+							}, 1000);
+						}
+
+						// 게시판 수정/목록 버튼 제어
 						var operForm = $("#operForm");
 
 						$("button[data-oper='modify']").on(
@@ -149,17 +317,16 @@
 
 						$("button[data-oper='list']").on("click", function(e) {
 							operForm.find("#bno").remove();
-							operForm.attr("action", "/board/list");
-							operForm.submit();
+							operForm.attr("action", "/board/list").submit();
 						});
 
+						// 댓글 페이징 및 목록 처리
 						var bnoValue = '<c:out value="${board.bno}"/>';
 						var replyUL = $(".chat");
 
 						showList(1);
 
 						function showList(page) {
-
 							console.log("show list " + page);
 
 							replyService
@@ -169,12 +336,6 @@
 												page : page || 1
 											},
 											function(replyCnt, list) {
-
-												console.log("replyCnt: "
-														+ replyCnt);
-												console.log("list: " + list);
-												console.log(list);
-
 												if (page == -1) {
 													pageNum = Math
 															.ceil(replyCnt / 10.0);
@@ -191,7 +352,7 @@
 												}
 
 												for (var i = 0, len = list.length || 0; i < len; i++) {
-													str += "<li class='left clearfix' data-rno='"+list[i].rno+"'>";
+													str += "<li class='left clearfix' data-rno='" + list[i].rno + "'>";
 													str += "  <div><div class='header'><strong class='primary-font'>["
 															+ list[i].rno
 															+ "] "
@@ -207,28 +368,22 @@
 												}
 
 												replyUL.html(str);
-
 												showReplyPage(replyCnt);
-
-											});//end function
-
-						}//end showList
+											});
+						}
 
 						var pageNum = 1;
 						var replyPageFooter = $(".panel-footer");
 
 						function showReplyPage(replyCnt) {
-
 							var endNum = Math.ceil(pageNum / 10.0) * 10;
 							var startNum = endNum - 9;
-
 							var prev = startNum != 1;
 							var next = false;
 
 							if (endNum * 10 >= replyCnt) {
 								endNum = Math.ceil(replyCnt / 10.0);
 							}
-
 							if (endNum * 10 < replyCnt) {
 								next = true;
 							}
@@ -242,10 +397,8 @@
 							}
 
 							for (var i = startNum; i <= endNum; i++) {
-
 								var active = pageNum == i ? "active" : "";
-
-								str += "<li class='page-item "+active+" '><a class='page-link' href='"+i+"'>"
+								str += "<li class='page-item " + active + " '><a class='page-link' href='" + i + "'>"
 										+ i + "</a></li>";
 							}
 
@@ -255,25 +408,16 @@
 							}
 
 							str += "</ul></div>";
-
-							console.log(str);
-
 							replyPageFooter.html(str);
 						}
 
 						replyPageFooter.on("click", "li a", function(e) {
 							e.preventDefault();
-							console.log("page click");
-
-							var targetPageNum = $(this).attr("href");
-
-							console.log("targetPageNum: " + targetPageNum);
-
-							pageNum = targetPageNum;
-
+							pageNum = $(this).attr("href");
 							showList(pageNum);
 						});
 
+						// 댓글 모달창 제어
 						var modal = $(".modal");
 						var modalInputReply = modal.find("input[name='reply']");
 						var modalInputReplyer = modal
@@ -286,19 +430,14 @@
 						var modalRegisterBtn = $("#modalRegisterBtn");
 
 						$("#addReplyBtn").on("click", function(e) {
-
 							modal.find("input").val("");
 							modalInputReplyDate.closest("div").hide();
 							modal.find("button[id !='modalCloseBtn']").hide();
-
 							modalRegisterBtn.show();
-
 							$(".modal").modal("show");
-
 						});
 
 						modalRegisterBtn.on("click", function(e) {
-
 							var reply = {
 								reply : modalInputReply.val(),
 								replyer : modalInputReplyer.val(),
@@ -306,60 +445,35 @@
 							};
 
 							replyService.add(reply, function(result) {
-
 								alert(result);
-
 								modal.find("input").val("");
 								modal.modal("hide");
-
-								//showList(1);
 								showList(-1);
-
 							});
-
 						});
 
+						// 중복 제거 후 pageNum을 유지하는 삭제 핸들러 1개만 유지
 						modalRemoveBtn.on("click", function(e) {
-
 							var rno = modal.data("rno");
 
 							replyService.remove(rno, function(result) {
-
 								alert(result);
 								modal.modal("hide");
-								showList(1);
+								showList(pageNum);
 							});
 						});
 
 						modalModBtn.on("click", function(e) {
-
 							var reply = {
 								rno : modal.data("rno"),
 								reply : modalInputReply.val()
 							};
 
 							replyService.update(reply, function(result) {
-
 								alert(result);
 								modal.modal("hide");
 								showList(pageNum);
-
 							});
-
-						});
-
-						modalRemoveBtn.on("click", function(e) {
-
-							var rno = modal.data("rno");
-
-							replyService.remove(rno, function(result) {
-
-								alert(result);
-								modal.modal("hide");
-								showList(pageNum);
-
-							});
-
 						});
 
 						$(".chat")
@@ -367,7 +481,6 @@
 										"click",
 										"li",
 										function(e) {
-
 											var rno = $(this).data("rno");
 
 											replyService
@@ -404,5 +517,6 @@
 																				"show");
 															});
 										});
+
 					});
 </script>
