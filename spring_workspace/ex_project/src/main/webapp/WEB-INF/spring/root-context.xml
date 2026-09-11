@@ -49,16 +49,10 @@
 		base-package="org.zerock.mapper" />
 
 	<context:component-scan
-		base-package="org.zerock.sample"></context:component-scan>
-
-	<context:component-scan
 		base-package="org.zerock.service"></context:component-scan>
 
 	<context:component-scan
 		base-package="org.zerock.aop"></context:component-scan>
-
-	<context:component-scan
-		base-package="org.zerock.task"></context:component-scan>
 
 	<context:annotation-config></context:annotation-config>
 
