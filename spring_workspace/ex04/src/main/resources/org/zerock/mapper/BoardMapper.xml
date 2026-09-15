@@ -4,17 +4,20 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.zerock.mapper.BoardMapper">
 
+	<!-- 전체 게시글 목록 단순 조회 -->
 	<select id="getList" resultType="org.zerock.domain.BoardVO">
 <![CDATA[
 select * from tbl_board where bno > 0
 ]]>
 	</select>
 
+	<!-- 신규 게시글 단순 등록 (시퀀스 자동 채번) -->
 	<insert id="insert">
 		insert into tbl_board (bno,title,content,writer)
 		values (seq_board.nextval, #{title}, #{content}, #{writer})
 	</insert>
 
+	<!-- 시퀀스 번호(bno)를 먼저 생성해 객체에 주입한 뒤 게시글 등록 (첨부파일 연계용) -->
 	<insert id="insertSelectKey">
 
 		<selectKey keyProperty="bno" order="BEFORE"
@@ -27,15 +30,18 @@ select * from tbl_board where bno > 0
 		#{title}, #{content}, #{writer})
 	</insert>
 
+	<!-- 게시글 번호(bno)로 단건 상세 정보 조회 -->
 	<select id="read" resultType="org.zerock.domain.BoardVO">
 		select * from tbl_board where bno =
 		#{bno}
 	</select>
 
+	<!-- 게시글 번호(bno)로 특정 게시글 삭제 -->
 	<delete id="delete">
 		delete from tbl_board where bno = #{bno}
 	</delete>
 
+	<!-- 게시글 본문(제목, 내용, 작성자) 수정 및 수정일시(sysdate) 갱신 -->
 	<update id="update">
 		update tbl_board set title= #{title},
 		content=#{content}, writer = #{writer},
@@ -43,11 +49,13 @@ select * from tbl_board where bno > 0
 		= #{bno}
 	</update>
 
+	<!-- 댓글 등록/삭제에 맞춰 해당 글의 총 댓글 수(replycnt)를 증감(+1 또는 -1) -->
 	<update id="updateReplyCnt">
 		update tbl_board set replycnt = replycnt + #{amount}
 		where bno = #{bno}
 	</update>
 
+	<!-- 검색 조건(제목:T, 내용:C, 작성자:W) 조합을 위한 재사용 동적 SQL 조각 -->
 	<sql id="criteria">
 		<trim prefix="(" suffix=") AND " prefixOverrides="OR">
 			<foreach item='type' collection="typeArr">
@@ -68,6 +76,7 @@ select * from tbl_board where bno > 0
 		</trim>
 	</sql>
 
+	<!-- 오라클 인덱스 힌트 및 rownum을 활용한 검색 조건 포함 페이징 목록 조회 -->
 	<select id="getListWithPaging"
 		resultType="org.zerock.domain.BoardVO">
   <![CDATA[
@@ -92,6 +101,7 @@ replycnt
   ]]>
 	</select>
 
+	<!-- 검색 조건이 적용된 전체 게시글 총 개수 카운트 -->
 	<select id="getTotalCount" resultType="int">
 		select count(*) from tbl_board
 		where

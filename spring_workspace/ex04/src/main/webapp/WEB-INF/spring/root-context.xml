@@ -13,41 +13,42 @@
 		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.3.xsd
 		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.3.xsd">
 
-	<!-- Root Context: defines shared resources visible to all other web components -->
+	<!-- 1. HikariCP 커넥션 풀 설정 (SQL 로그 출력을 위해 log4jdbc 드라이버 사용) -->
 	<bean id="hikariConfig" class="com.zaxxer.hikari.HikariConfig">
-		<!-- <property name="driverClassName" value="oracle.jdbc.driver.OracleDriver"></property> 
-			<property name="jdbcUrl" value="jdbc:oracle:thin:@localhost:1521:XE"></property> -->
-
 		<property name="driverClassName"
 			value="net.sf.log4jdbc.sql.jdbcapi.DriverSpy"></property>
 		<property name="jdbcUrl"
 			value="jdbc:log4jdbc:oracle:thin:@localhost:1521:XE"></property>
-
 		<property name="username" value="system"></property>
 		<property name="password" value="1234"></property>
 	</bean>
 
-	<!-- HikariCP configuration -->
+	<!-- 2. 실제 데이터 소스(DB 연결 풀) 빈 생성 -->
 	<bean id="dataSource" class="com.zaxxer.hikari.HikariDataSource"
 		destroy-method="close">
 		<constructor-arg ref="hikariConfig" />
 	</bean>
 
+	<!-- 3. MyBatis와 스프링을 연동해 주는 핵심 세션 팩토리 빈 등록 -->
 	<bean id="sqlSessionFactory"
 		class="org.mybatis.spring.SqlSessionFactoryBean">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 
+	<!-- 4. 트랜잭션 관리를 위한 매니저 등록 -->
 	<bean id="transactionManager"
 		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
 		<property name="dataSource" ref="dataSource"></property>
 	</bean>
 
+	<!-- 5. @Transactional 어노테이션 기반의 트랜잭션 제어 활성화 -->
 	<tx:annotation-driven />
 
+	<!-- 6. Mapper 인터페이스 패키지 자동 검색 및 구현체 생성 -->
 	<mybatis-spring:scan
 		base-package="org.zerock.mapper" />
 
+	<!-- 7. 비즈니스, AOP, 스케줄링 패키지 컴포넌트 자동 스캔 -->
 	<context:component-scan
 		base-package="org.zerock.sample"></context:component-scan>
 
@@ -60,10 +61,13 @@
 	<context:component-scan
 		base-package="org.zerock.task"></context:component-scan>
 
+	<!-- 어노테이션 기반 설정 처리 기능 활성화 -->
 	<context:annotation-config></context:annotation-config>
 
+	<!-- 8. @Aspect 어노테이션을 자동으로 감지해 프록시를 생성하는 AOP 설정 -->
 	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
 
+	<!-- 9. @Scheduled 어노테이션 기반의 스케줄러 기능 활성화 -->
 	<task:annotation-driven />
 
 </beans>

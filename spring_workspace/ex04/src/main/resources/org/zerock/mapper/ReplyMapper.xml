@@ -4,25 +4,30 @@
   "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
 <mapper namespace="org.zerock.mapper.ReplyMapper">
 
+	<!-- 신규 댓글 등록 (댓글 시퀀스 seq_reply 사용) -->
 	<insert id="insert">
 		insert into tbl_reply (rno, bno, reply, replyer)
 		values (seq_reply.nextval, #{bno}, #{reply}, #{replyer})
 	</insert>
 
+	<!-- 댓글 번호(rno)로 단건 조회 -->
 	<select id="read" resultType="org.zerock.domain.ReplyVO">
 		select * from tbl_reply where rno =
 		#{rno}
 	</select>
 
+	<!-- 댓글 번호(rno)로 특정 댓글 삭제 -->
 	<delete id="delete">
 		delete from tbl_reply where rno = #{rno}
 	</delete>
 
+	<!-- 댓글 내용 수정 및 수정일시 갱신 -->
 	<update id="update">
 		update tbl_reply set reply = #{reply}, updatedate =
 		sysdate where rno = #{rno}
 	</update>
 
+	<!-- 특정 게시글(bno)의 댓글들을 인덱스 순서대로 페이징 조회 -->
 	<select id="getListWithPaging"
 		resultType="org.zerock.domain.ReplyVO">
 		<![CDATA[
@@ -39,6 +44,7 @@
   ]]>
 	</select>
 
+	<!-- 특정 게시글(bno)에 달린 총 댓글 개수 카운트 -->
 	<select id="getCountByBno" resultType="int">
   <![CDATA[
   select count(rno) from tbl_reply where bno = #{bno}

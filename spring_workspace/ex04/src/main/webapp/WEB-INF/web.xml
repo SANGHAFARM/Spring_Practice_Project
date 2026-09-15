@@ -4,43 +4,45 @@
 	xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
 	id="WebApp_ID" version="3.1">
 
-	<!-- The definition of the Root Spring Container shared by all Servlets 
-		and Filters -->
+	<!-- 1. 전체 스프링 환경 설정 파일(root-context.xml)의 위치 지정 -->
 	<context-param>
 		<param-name>contextConfigLocation</param-name>
 		<param-value>/WEB-INF/spring/root-context.xml</param-value>
 	</context-param>
 
-	<!-- Creates the Spring Container shared by all Servlets and Filters -->
+	<!-- 2. 웹 앱 구동 시 root-context.xml을 읽어 루트 스프링 컨테이너를 생성하는 리스너 -->
 	<listener>
 		<listener-class>org.springframework.web.context.ContextLoaderListener</listener-class>
 	</listener>
 
-	<!-- Processes application requests -->
+	<!-- 3. 클라이언트의 모든 웹 요청을 가장 먼저 받는 프론트 컨트롤러(DispatcherServlet) 등록 -->
 	<servlet>
 		<servlet-name>appServlet</servlet-name>
 		<servlet-class>org.springframework.web.servlet.DispatcherServlet</servlet-class>
 		<init-param>
+			<!-- 서블릿 전용 웹 MVC 설정 파일 위치 지정 -->
 			<param-name>contextConfigLocation</param-name>
 			<param-value>/WEB-INF/spring/appServlet/servlet-context.xml</param-value>
 		</init-param>
-		<load-on-startup>1</load-on-startup>
+		<load-on-startup>1</load-on-startup> <!-- 톰캣 구동 시 서블릿을 즉시 메모리에 로드 -->
 
+		<!-- 파일 업로드 임시 경로 및 최대 용량 제한 설정 -->
 		<multipart-config>
-			<location>C:\\upload\\temp</location>
-			<max-file-size>20971520</max-file-size> <!-- 1MB * 20 -->
-			<max-request-size>41943040</max-request-size> <!-- 40MB -->
-			<file-size-threshold>20971520</file-size-threshold> <!-- 20MB -->
+			<location>C:\\upload\\temp</location>      <!-- 업로드 임시 보관 경로 -->
+			<max-file-size>20971520</max-file-size>       <!-- 개별 파일 최대 크기: 20MB -->
+			<max-request-size>41943040</max-request-size> <!-- 1회 요청당 전체 파일 최대 크기: 40MB -->
+			<file-size-threshold>20971520</file-size-threshold> <!-- 임시 파일 생성 기준 크기: 20MB -->
 		</multipart-config>
 
 	</servlet>
 
+	<!-- 4. 모든 URL 경로('/')의 요청을 appServlet이 처리하도록 매핑 -->
 	<servlet-mapping>
 		<servlet-name>appServlet</servlet-name>
 		<url-pattern>/</url-pattern>
 	</servlet-mapping>
 
-	<!-- UTF-8 filter -->
+	<!-- 5. 모든 요청 파라미터의 한글 깨짐 방지를 위한 UTF-8 인코딩 필터 등록 -->
 	<filter>
 		<filter-name>encoding</filter-name>
 		<filter-class>org.springframework.web.filter.CharacterEncodingFilter</filter-class>
@@ -50,6 +52,7 @@
 		</init-param>
 	</filter>
 
+	<!-- 6. 인코딩 필터를 appServlet에 적용 -->
 	<filter-mapping>
 		<filter-name>encoding</filter-name>
 		<servlet-name>appServlet</servlet-name>

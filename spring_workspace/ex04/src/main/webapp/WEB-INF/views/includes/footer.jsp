@@ -1,31 +1,28 @@
 <%@ page language="java" contentType="text/html; charset=UTF-8"
 	pageEncoding="UTF-8"%>
 </div>
-<!-- /#page-wrapper -->
+<!-- /#page-wrapper 끝 -->
 
 </div>
-<!-- /#wrapper -->
+<!-- /#wrapper 끝 -->
 
-<!-- jQuery -->
-<!-- <script src="/resources/vendor/jquery/jquery.min.js"></script> -->
-
-<!-- Bootstrap Core JavaScript -->
+<!-- 부트스트랩 코어 자바스크립트 -->
 <script src="/resources/vendor/bootstrap/js/bootstrap.min.js"></script>
 
-<!-- Metis Menu Plugin JavaScript -->
+<!-- 사이드바 메뉴 슬라이드 플러그인 -->
 <script src="/resources/vendor/metisMenu/metisMenu.min.js"></script>
 
-<!-- DataTables JavaScript -->
+<!-- 데이터테이블 플러그인 스크립트 -->
 <script src="/resources/vendor/datatables/js/jquery.dataTables.min.js"></script>
 <script
 	src="/resources/vendor/datatables-plugins/dataTables.bootstrap.min.js"></script>
 <script
 	src="/resources/vendor/datatables-responsive/dataTables.responsive.js"></script>
 
-<!-- Custom Theme JavaScript -->
+<!-- SB Admin 2 메인 테마 제어 스크립트 -->
 <script src="/resources/dist/js/sb-admin-2.js"></script>
 
-<!-- Page-Level Demo Scripts - Tables - Use for reference -->
+<!-- 테이블 반응형 플러그인 초기화 및 사이드바 초기 접힘 상태 설정 -->
 <script>
 	$(document).ready(
 			function() {
@@ -39,5 +36,4 @@
 </script>
 
 </body>
-
 </html>

@@ -4,7 +4,7 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
-<title>Insert title here</title>
+<title>Upload with Ajax</title>
 <style>
 .uploadResult {
 	width: 100%;
@@ -62,17 +62,20 @@
 <body>
 	<h1>Upload with Ajax</h1>
 
+	<!-- 파일 선택 입력 태그 컨테이너 -->
 	<div class='uploadDiv'>
 		<input type='file' name='uploadFile' multiple>
 	</div>
 
+	<!-- 비동기 업로드 결과 목록 -->
 	<div class='uploadResult'>
-		<ul>
-		</ul>
+		<ul></ul>
 	</div>
 
+	<!-- 수동 업로드 실행 버튼 -->
 	<button id='uploadBtn'>Upload</button>
 
+	<!-- 원본 이미지 확대 팝업용 레이어 -->
 	<div class='bigPictureWrapper'>
 		<div class='bigPicture'></div>
 	</div>
@@ -82,15 +85,15 @@
 		crossorigin="anonymous"></script>
 
 	<script>
+		// 업로드 파일 확장자 필터링 및 5MB 용량 제한
 		var regex = new RegExp("(.*?)\\.(exe|sh|zip|alz)$");
-		var maxSize = 5242880; // 5MB
+		var maxSize = 5242880;
 
 		function checkExtension(fileName, fileSize) {
 			if (fileSize >= maxSize) {
 				alert("파일 사이즈 초과");
 				return false;
 			}
-
 			if (regex.test(fileName)) {
 				alert("해당 종류의 파일은 업로드할 수 없습니다.");
 				return false;
@@ -98,36 +101,35 @@
 			return true;
 		}
 
-		// a 태그 인라인에서 호출하므로 전역 스코프 유지
+		// 이미지 섬네일 클릭 시 원본 이미지를 부드럽게 확대하는 함수
 		function showImage(fileCallPath) {
 			$(".bigPictureWrapper").css("display", "flex").show();
-
-			$(".bigPicture").html(
-					"<img src='/display?fileName=" + encodeURI(fileCallPath) + "'>")
+			$(".bigPicture").html("<img src='/display?fileName=" + encodeURI(fileCallPath) + "'>")
 					.animate({width : '100%', height : '100%'}, 1000);
 		}
 
 		$(document).ready(function() {
 
+			// 파일 선택 input 태그를 업로드 후 깨끗하게 비우기 위한 복제(Clone) 객체
 			var cloneObj = $(".uploadDiv").clone();
 			var uploadResult = $(".uploadResult ul");
 
+			// 서버로부터 반환받은 업로드 결과 배열을 화면에 렌더링
 			function showUploadedFile(uploadResultArr) {
 				var str = "";
 
 				$(uploadResultArr).each(function(i, obj) {
+					// 일반 파일이면 다운로드 링크와 기본 아이콘 추가
 					if (!obj.image) {
 						var fileCallPath = encodeURIComponent(obj.uploadPath + "/" + obj.uuid + "_" + obj.fileName);
-						var fileLink = fileCallPath.replace(new RegExp(/\\/g), "/");
-
 						str += "<li><div><a href='/download?fileName=" + fileCallPath + "'>"
 								+ "<img src='/resources/img/attach.png'>" + obj.fileName + "</a>"
 								+ "<span data-file=\'" + fileCallPath + "\' data-type='file'> x </span>"
 								+ "</div></li>";
+					// 이미지 파일이면 원본 확대 링크와 섬네일 이미지 추가
 					} else {
 						var fileCallPath = encodeURIComponent(obj.uploadPath + "/s_" + obj.uuid + "_" + obj.fileName);
-						var originPath = obj.uploadPath + "\\" + obj.uuid + "_" + obj.fileName;
-						originPath = originPath.replace(new RegExp(/\\/g), "/");
+						var originPath = (obj.uploadPath + "\\" + obj.uuid + "_" + obj.fileName).replace(new RegExp(/\\/g), "/");
 
 						str += "<li><a href=\"javascript:showImage(\'" + originPath + "\')\">"
 								+ "<img src='/display?fileName=" + fileCallPath + "'></a>"
@@ -139,11 +141,11 @@
 				uploadResult.append(str);
 			}
 
-			// 삭제 이벤트 위임 (중복 바인딩 방지를 위해 함수 밖으로 분리)
+			// 파일 목록의 'x' 버튼 클릭 시 비동기로 서버 파일 삭제 요청
 			$(".uploadResult").on("click", "span", function(e) {
 				var targetFile = $(this).data("file");
 				var type = $(this).data("type");
-				console.log(targetFile);
+				var targetLi = $(this).closest("li");
 
 				$.ajax({
 					url : '/deleteFile',
@@ -152,18 +154,18 @@
 					type : 'POST',
 					success : function(result) {
 						alert(result);
+						targetLi.remove(); // 삭제 성공 시 화면 li 제거
 					}
-				}); // $.ajax
+				});
 			});
 
-			// 원본 이미지 클릭 시 닫기
+			// 확대된 이미지 클릭 시 원본 창 닫기
 			$(".bigPictureWrapper").on("click", function(e) {
 				$(".bigPicture").animate({width : '0%', height : '0%'}, 1000);
-				setTimeout(() => {
-					$(this).hide();
-				}, 1000);
+				setTimeout(() => { $(this).hide(); }, 1000);
 			});
 
+			// 'Upload' 버튼 클릭 시 FormData 객체를 생성해 파일 전송
 			$("#uploadBtn").on("click", function(e) {
 				var formData = new FormData();
 				var inputFile = $("input[name='uploadFile']");
@@ -178,17 +180,17 @@
 
 				$.ajax({
 					url : '/uploadAjaxAction',
-					processData : false,
-					contentType : false,
+					processData : false, // FormData 전송을 위해 자동 쿼리스트링 변환 끄기
+					contentType : false, // multipart/form-data 헤더 자동 설정 유도
 					data : formData,
 					type : 'POST',
 					dataType : 'json',
 					success : function(result) {
 						console.log(result);
-						showUploadedFile(result);
-						$(".uploadDiv").html(cloneObj.html());
+						showUploadedFile(result); // 업로드된 결과 목록 렌더링
+						$(".uploadDiv").html(cloneObj.html()); // input 파일 선택창 초기화
 					}
-				}); // $.ajax
+				});
 			});
 
 		});

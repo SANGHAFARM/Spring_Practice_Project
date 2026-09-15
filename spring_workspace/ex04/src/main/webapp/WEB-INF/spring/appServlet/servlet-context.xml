@@ -8,27 +8,24 @@
 		http://www.springframework.org/schema/beans https://www.springframework.org/schema/beans/spring-beans.xsd
 		http://www.springframework.org/schema/context https://www.springframework.org/schema/context/spring-context.xsd">
 
-	<!-- DispatcherServlet Context: defines this servlet's request-processing 
-		infrastructure -->
-
-	<!-- Enables the Spring MVC @Controller programming model -->
+	<!-- @Controller 및 핸들러 매핑 등 스프링 MVC 프로그래밍 모델 활성화 -->
 	<annotation-driven />
 
-	<!-- Handles HTTP GET requests for /resources/** by efficiently serving 
-		up static resources in the ${webappRoot}/resources directory -->
+	<!-- CSS, JS, 이미지 등 정적 파일 요청을 처리할 기본 웹 경로 지정 -->
 	<resources mapping="/resources/**" location="/resources/" />
 
-	<!-- Resolves views selected for rendering by @Controllers to .jsp resources 
-		in the /WEB-INF/views directory -->
+	<!-- 컨트롤러가 반환한 문자열 앞/뒤에 경로와 확장자(.jsp)를 붙여줄 뷰 리졸버 -->
 	<beans:bean
 		class="org.springframework.web.servlet.view.InternalResourceViewResolver">
 		<beans:property name="prefix" value="/WEB-INF/views/" />
 		<beans:property name="suffix" value=".jsp" />
 	</beans:bean>
 
+	<!-- 컨트롤러(@Controller) 클래스들을 자동 검색하여 빈으로 등록 -->
 	<context:component-scan
 		base-package="org.zerock.controller" />
 
+	<!-- Servlet 3.0 이상 표준 파일 업로드 처리를 위한 멀티파트 리졸버 등록 -->
 	<beans:bean id="multipartResolver"
 		class="org.springframework.web.multipart.support.StandardServletMultipartResolver">
 	</beans:bean>
