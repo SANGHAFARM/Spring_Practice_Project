@@ -12,4 +12,8 @@ public class HelloPrinter {
     	this.helloService = helloService;
     }
     
+    public String print() {
+    	return helloService.hello();
+    }
+    
 }
