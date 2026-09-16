@@ -1,8 +1,8 @@
 package org.zerock.service;
 
-import org.springframework.stereotype.Component;
+import org.springframework.stereotype.Repository;
 
-@Component
+@Repository
 public class HelloRepository {
 
 	public String getMessage() {
